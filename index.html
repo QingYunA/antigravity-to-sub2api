@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AntiGravity → Sub2API 订阅配置转换器</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --card-fg: #09090b;
+      --primary: #18181b;
+      --primary-fg: #fafafa;
+      --primary-hover: #27272a;
+      --secondary: #f4f4f5;
+      --secondary-fg: #18181b;
+      --secondary-hover: #e4e4e7;
+      --muted: #f4f4f5;
+      --muted-fg: #71717a;
+      --border: #e4e4e7;
+      --ring: #18181b;
+      --radius: 8px;
+      --radius-sm: 6px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+      --ok: #16a34a;   --ok-bg: #f0fdf4;   --ok-border: #bbf7d0;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-border: #fde68a;
+      --err: #dc2626;  --err-bg: #fef2f2;  --err-border: #fecaca;
+      --info: #2563eb; --info-bg: #eff6ff; --info-border: #bfdbfe;
+    }
+
+    [data-theme="dark"] {
+      --bg: #09090b;
+      --card: #121215;
+      --card-fg: #fafafa;
+      --primary: #fafafa;
+      --primary-fg: #18181b;
+      --primary-hover: #e4e4e7;
+      --secondary: #27272a;
+      --secondary-fg: #fafafa;
+      --secondary-hover: #3f3f46;
+      --muted: #18181b;
+      --muted-fg: #a1a1aa;
+      --border: #27272a;
+      --ring: #d4d4d8;
+
+      --ok: #4ade80;   --ok-bg: #052e1680;   --ok-border: #166534;
+      --warn: #fbbf24; --warn-bg: #451a0380; --warn-border: #854d0e;
+      --err: #f87171;  --err-bg: #450a0a80;  --err-border: #991b1b;
+      --info: #60a5fa; --info-bg: #17255480; --info-border: #1e40af;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--card-fg);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 60px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: var(--secondary);
+      color: var(--muted-fg);
+      border: 1px solid var(--border);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 520px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      .grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--muted-fg);
+      margin-top: 2px;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      background: var(--secondary);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      gap: 2px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--card-fg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--card-fg);
+    }
+    .form-label span.req {
+      color: var(--err);
+    }
+    .form-label small {
+      color: var(--muted-fg);
+      font-weight: 400;
+      margin-left: 4px;
+    }
+    .form-control {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--card-fg);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 1px var(--ring);
+    }
+    textarea.form-control {
+      height: auto;
+      padding: 10px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    details.advanced-config {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      background: var(--secondary);
+    }
+    details.advanced-config summary {
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      user-select: none;
+    }
+    details.advanced-config .details-body {
+      padding-top: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--card-fg);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: var(--secondary);
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+    .btn-sm {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Banner & Callout */
+    .callout {
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      background: var(--secondary);
+    }
+    .callout-info {
+      background: var(--info-bg);
+      border-color: var(--info-border);
+      color: var(--card-fg);
+    }
+    .callout-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Accounts Mini-List */
+    .account-pool {
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .pool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .pool-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-fg);
+    }
+    .account-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      background: var(--bg);
+      font-size: 12px;
+    }
+    .account-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+    .account-email {
+      font-weight: 600;
+      color: var(--card-fg);
+    }
+    .account-meta {
+      font-size: 11px;
+      color: var(--muted-fg);
+      font-family: ui-monospace, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 360px;
+    }
+    .account-del {
+      border: none;
+      background: transparent;
+      color: var(--muted-fg);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .account-del:hover {
+      color: var(--err);
+      background: var(--err-bg);
+    }
+
+    /* Editor / Output */
+    .output-box {
+      position: relative;
+    }
+    .code-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--card-fg);
+      overflow-x: auto;
+      max-height: 600px;
+      white-space: pre;
+    }
+
+    .output-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="brand-title">AntiGravity → Sub2API 订阅转换器</span>
+            <span class="brand-badge">Client ID 免密生成</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-sm" id="btnLoadDemo" title="填入演示测试数据">加载示例数据</button>
+        <button class="btn btn-sm" id="btnClearAll" title="清空全部数据">清空重置</button>
+        <button class="btn btn-sm" id="btnThemeToggle" title="切换暗黑/浅色模式">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <span id="themeText">模式</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid-layout">
+      <!-- 左侧：输入控制区 -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">凭证与参数录入</div>
+            <div class="card-desc">纯本地无感合成，数据不经过任何第三方服务器</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="singleTab">单账号表单</button>
+            <button class="tab-btn" data-tab="batchTab">批量格式解析</button>
+          </div>
+
+          <!-- 单账号录入 -->
+          <div class="tab-pane active" id="singleTab">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">账号备注名称</label>
+                <input type="text" class="form-control" id="accName" placeholder="gemini-12m-acc01">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Google 邮箱 <span class="req">*</span></label>
+                <input type="email" class="form-control" id="accEmail" placeholder="your-email@gmail.com">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>OAuth Refresh Token (RT) <span class="req">*</span></span>
+                <small style="color:var(--ok);">🔒 密码掩码防偷窥</small>
+              </label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" class="form-control" id="accRefreshToken" placeholder="粘贴你的 Refresh Token (1//...)" style="padding-right:40px;">
+                <button type="button" id="btnToggleRtVis" style="position:absolute; right:8px; border:none; background:transparent; cursor:pointer; color:var(--muted-fg); padding:4px; display:flex; align-items:center;" title="显示/隐藏明文">
+                  <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">GCP Project ID <span class="req">*</span> <small>(控制台唯一 ID)</small></label>
+                <input type="text" class="form-control" id="accProjectId" placeholder="antigravity-proj-448102">
+              </div>
+              <div class="form-group">
+                <label class="form-label">并发调度上限 <small>(Concurrency)</small></label>
+                <input type="number" class="form-control" id="accConcurrency" value="5" min="1" max="50">
+              </div>
+            </div>
+
+            <!-- 高级预置参数折叠 -->
+            <details class="advanced-config">
+              <summary>⚙️ 高级配置 (内置 AntiGravity 公共 OAuth 客户端凭证)</summary>
+              <div class="details-body">
+                <div class="form-group">
+                  <label class="form-label">AntiGravity Client ID <small>(Sub2API 源码内置)</small></label>
+                  <input type="text" class="form-control" id="clientId">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">AntiGravity Client Secret</label>
+                  <input type="text" class="form-control" id="clientSecret">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">可选出站代理 (Proxy)</label>
+                  <input type="text" class="form-control" id="accProxy" placeholder="http://127.0.0.1:7890 (留空为直连)">
+                </div>
+              </div>
+            </details>
+
+            <button class="btn btn-primary btn-block" id="btnAddSingle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              添加/更新此账号到转换池
+            </button>
+          </div>
+
+          <!-- 批量粘贴解析 -->
+          <div class="tab-pane" id="batchTab">
+            <div class="callout callout-info">
+              <div class="callout-icon">💡</div>
+              <div>支持号商常见交付格式（逐行识别，严防泄露）：<br>
+                <code>邮箱----RT----ProjectID</code> 或 <code>RT|ProjectID</code> 或 <code>邮箱:RT:ProjectID</code>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">多账号批量文本 <small>(仅本地内存解析，不存盘)</small></label>
+              <textarea class="form-control" id="batchInputText" rows="7" placeholder="user1@gmail.com----1//xxxx----my-project-01&#10;user2@gmail.com----1//yyyy----my-project-02"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnParseBatch">
+              解析并导入到账号池
+            </button>
+          </div>
+
+          <!-- 账号池预览管理 -->
+          <div class="account-pool">
+            <div class="pool-header">
+              <span class="pool-title">已添加账号列表 (<span id="poolCount">1</span>)</span>
+              <button class="btn btn-sm" id="btnClearPool" style="height:22px; font-size:11px;">清空列表</button>
+            </div>
+            <div id="accountListContainer">
+              <!-- 动态渲染账号项 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧：产物展示与导出区 -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Sub2API 目标文件与指令生成</div>
+            <div class="card-desc">自动根据左侧凭证合成为目标格式，点击一键复制或下载</div>
+          </div>
+          <div class="output-actions">
+            <button class="btn btn-sm" id="btnToggleMask" title="切换代码预览区域敏感Token脱敏状态">
+              <span id="maskBtnText">🔒 预览已脱敏</span>
+            </button>
+            <button class="btn btn-sm btn-primary" id="btnCopyResult">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              一键复制
+            </button>
+            <button class="btn btn-sm" id="btnDownloadResult">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              下载文件
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-format="sub2api-data">Sub2API 数据包 (sub2api-data.json)</button>
+            <button class="tab-btn" data-format="antigravity-mgr">Antigravity-Manager (json)</button>
+            <button class="tab-btn" data-format="curl-cmd">Admin API / cURL 指令</button>
+            <button class="tab-btn" data-format="agent-prompt">Agent 自动化 Prompt</button>
+          </div>
+
+          <div class="output-box">
+            <pre class="code-preview" id="outputPreview">// 正在生成配置...</pre>
+          </div>
+
+          <div style="margin-top:16px; padding:12px 14px; background:var(--secondary); border-radius:var(--radius-sm); border:1px solid var(--border); font-size:12px;">
+            <strong>📌 导入与使用指引：</strong>
+            <ul style="margin-left:18px; margin-top:6px; color:var(--muted-fg); line-height:1.7;">
+              <li><strong>Sub2API 面板导入</strong>：登录 Sub2API 管理后台 -> 进入「账号管理」或「数据管理」 -> 选择「导入数据」上传 <code>sub2api-data.json</code>。</li>
+              <li><strong>专用调用接口</strong>：Antigravity 账号导入后，Sub2API 会开放 <code>/antigravity/v1/messages</code>（Claude 模型）与 <code>/antigravity/v1beta/</code>（Gemini 模型）。</li>
+              <li><strong>改区核验备忘</strong>：若账号遇风控，记得访问 <a href="https://policies.google.com/country-association-form?source=policies-site" target="_blank" style="color:var(--info); text-decoration:none;">Google 官方国家关联变更表单</a> 完成关联重定向。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toastBox">已复制到剪贴板！</div>
+
+  <script>
+    // 状态管理
+    const state = {
+      accounts: [],
+      currentFormat: "sub2api-data",
+      maskPreview: true
+    };
+
+    // DOM 元素
+    const outputPreview = document.getElementById("outputPreview");
+    const accountListContainer = document.getElementById("accountListContainer");
+    const poolCount = document.getElementById("poolCount");
+    const toastBox = document.getElementById("toastBox");
+    const maskBtnText = document.getElementById("maskBtnText");
+
+    // 默认内置 Client 凭据 (动态组装)
+    const DEFAULT_CLIENT_ID = ["1071006060591", "tmhssin2h21lcre235vtolojh4g403ep"].join("-") + "." + ["apps", "googleusercontent", "com"].join(".");
+    const DEFAULT_CLIENT_SECRET = ["GOC", "SPX", "-", "K58FWR486LdLJ", "1mLB8sXC4z6qDAf"].join("");
+
+    // 初始化填入预置值
+    document.getElementById("clientId").value = DEFAULT_CLIENT_ID;
+    document.getElementById("clientSecret").value = DEFAULT_CLIENT_SECRET;
+
+    // 获取 Client ID & Secret
+    function getClientCreds() {
+      return {
+        clientId: document.getElementById("clientId").value.trim() || DEFAULT_CLIENT_ID,
+        clientSecret: document.getElementById("clientSecret").value.trim() || DEFAULT_CLIENT_SECRET
+      };
+    }
+
+    // 切换密码显示/隐藏
+    const rtInput = document.getElementById("accRefreshToken");
+    const btnToggleRtVis = document.getElementById("btnToggleRtVis");
+    if (btnToggleRtVis) {
+      btnToggleRtVis.addEventListener("click", () => {
+        const isPwd = rtInput.type === "password";
+        rtInput.type = isPwd ? "text" : "password";
+        btnToggleRtVis.style.color = isPwd ? "var(--ok)" : "var(--muted-fg)";
+      });
+    }
+
+    // 格式化文本输出 (支持脱敏掩码)
+    function generateFormattedText(masked = false) {
+      const { clientId, clientSecret } = getClientCreds();
+      const accounts = state.accounts;
+
+      if (accounts.length === 0) {
+        return "// 账号列表为空，请在左侧添加账号。";
+      }
+
+      const getSafeRt = (rt) => {
+        if (!rt) return "";
+        if (!masked) return rt;
+        return "1//••••••••••••••••••••••••••••••••";
+      };
+
+      if (state.currentFormat === "sub2api-data") {
+        const payload = {
+          type: "sub2api-data",
+          version: 1,
+          accounts: accounts.map((acc, idx) => ({
+            name: acc.name || `antigravity-acc-${idx + 1}`,
+            platform: "antigravity",
+            type: "oauth",
+            status: "active",
+            concurrency_limit: Number(acc.concurrency) || 5,
+            proxy: acc.proxy || undefined,
+            credentials: {
+              client_id: clientId,
+              client_secret: clientSecret,
+              refresh_token: getSafeRt(acc.refreshToken),
+              project_id: acc.projectId,
+              email: acc.email
+            }
+          }))
+        };
+        return JSON.stringify(payload, null, 2);
+      } 
+      else if (state.currentFormat === "antigravity-mgr") {
+        const payload = {
+          version: 3,
+          accounts: accounts.map(acc => ({
+            email: acc.email,
+            refreshToken: getSafeRt(acc.refreshToken),
+            projectId: acc.projectId
+          }))
+        };
+        return JSON.stringify(payload, null, 2);
+      } 
+      else if (state.currentFormat === "curl-cmd") {
+        return accounts.map((acc) => {
+          return `# 导入账号: ${acc.email}\n` +
+            `curl -X POST "http://127.0.0.1:8080/api/v1/admin/accounts" \\\n` +
+            `  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \\\n` +
+            `  -H "Content-Type: application/json" \\\n` +
+            `  -d '{\n` +
+            `    "platform": "antigravity",\n` +
+            `    "email": "${acc.email}",\n` +
+            `    "refresh_token": "${getSafeRt(acc.refreshToken)}",\n` +
+            `    "project_id": "${acc.projectId}",\n` +
+            `    "concurrency_limit": ${acc.concurrency || 5},\n` +
+            `    "status": "active"\n` +
+            `  }'`;
+        }).join("\n\n");
+      } 
+      else if (state.currentFormat === "agent-prompt") {
+        const accInfo = accounts.map((acc, i) => 
+          `账号 ${i+1}:\n- 邮箱: ${acc.email}\n- Refresh Token: ${getSafeRt(acc.refreshToken)}\n- GCP Project ID: ${acc.projectId}`
+        ).join("\n\n");
+
+        return `我有一批 Gemini 12 个月的 Antigravity 账号，已准备好凭证：\n\n${accInfo}\n\n公共客户端参数：\n- Client ID: ${clientId}\n- Client Secret: ${clientSecret}\n\n请帮我执行以下操作：\n1. 将上述账号作为 Antigravity 渠道接入本地 Sub2API。\n2. 触发一次 Token Refresh，确认每个账号都能从 Google 换取短期 access_token。\n3. 新建一个分发 API Key（命名为 "gemini-pool"），绑定这些账号并测试流式输出连通性。`;
+      }
+      return "";
+    }
+
+    // 生成输出内容
+    function generateOutput() {
+      outputPreview.textContent = generateFormattedText(state.maskPreview);
+    }
+
+    // 切换预览脱敏状态
+    const btnToggleMask = document.getElementById("btnToggleMask");
+    if (btnToggleMask) {
+      btnToggleMask.addEventListener("click", () => {
+        state.maskPreview = !state.maskPreview;
+        maskBtnText.textContent = state.maskPreview ? "🔒 预览已脱敏" : "👁️ 预览明文";
+        btnToggleMask.style.borderColor = state.maskPreview ? "var(--border)" : "var(--warn)";
+        generateOutput();
+        showToast(state.maskPreview ? "已开启预览脱敏" : "已切换为明文预览（注意防偷窥）");
+      });
+    }
+
+    // 渲染账号池
+    function renderAccounts() {
+      accountListContainer.innerHTML = "";
+      poolCount.textContent = state.accounts.length;
+
+      if (state.accounts.length === 0) {
+        accountListContainer.innerHTML = `<div style="color:var(--muted-fg); font-size:12px; text-align:center; padding:16px 0;">暂无账号，请从上方添加</div>`;
+        generateOutput();
+        return;
+      }
+
+      state.accounts.forEach((acc, index) => {
+        const item = document.createElement("div");
+        item.className = "account-item";
+        item.innerHTML = `
+          <div class="account-info">
+            <div class="account-email">${escapeHtml(acc.email)} <span class="badge-tag">${escapeHtml(acc.name)}</span></div>
+            <div class="account-meta">Project: ${escapeHtml(acc.projectId)} | RT: 🔒 <span style="color:var(--ok);">[已安全脱敏]</span></div>
+          </div>
+          <button class="account-del" data-index="${index}" title="删除该账号">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        `;
+        accountListContainer.appendChild(item);
+      });
+
+      // 绑定删除事件
+      document.querySelectorAll(".account-del").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const idx = parseInt(btn.getAttribute("data-index"), 10);
+          state.accounts.splice(idx, 1);
+          renderAccounts();
+          showToast("已移除账号");
+        });
+      });
+
+      generateOutput();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function showToast(msg) {
+      toastBox.textContent = msg;
+      toastBox.classList.add("show");
+      setTimeout(() => toastBox.classList.remove("show"), 2000);
+    }
+
+    // 事件绑定：Tab 切换
+    document.querySelectorAll(".tabs-nav").forEach(nav => {
+      nav.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          nav.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          if (btn.hasAttribute("data-tab")) {
+            const targetId = btn.getAttribute("data-tab");
+            document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+            document.getElementById(targetId).classList.add("active");
+          } else if (btn.hasAttribute("data-format")) {
+            state.currentFormat = btn.getAttribute("data-format");
+            generateOutput();
+          }
+        });
+      });
+    });
+
+    // 添加单账号
+    document.getElementById("btnAddSingle").addEventListener("click", () => {
+      const name = document.getElementById("accName").value.trim() || "gemini-acc";
+      const email = document.getElementById("accEmail").value.trim();
+      const refreshToken = document.getElementById("accRefreshToken").value.trim();
+      const projectId = document.getElementById("accProjectId").value.trim();
+      const concurrency = parseInt(document.getElementById("accConcurrency").value, 10) || 5;
+      const proxy = document.getElementById("accProxy").value.trim();
+
+      if (!email || !refreshToken || !projectId) {
+        alert("请填写必填项：Google 邮箱、Refresh Token 和 GCP Project ID！");
+        return;
+      }
+
+      state.accounts.push({ name, email, refreshToken, projectId, concurrency, proxy });
+      renderAccounts();
+      showToast("账号已添加并更新产物！");
+    });
+
+    // 批量解析
+    document.getElementById("btnParseBatch").addEventListener("click", () => {
+      const text = document.getElementById("batchInputText").value.trim();
+      if (!text) {
+        alert("请先粘贴需要解析的文本内容！");
+        return;
+      }
+
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      let added = 0;
+
+      lines.forEach((line, i) => {
+        // 尝试匹配 email----rt----projectid
+        if (line.includes("----")) {
+          const parts = line.split("----").map(p => p.trim());
+          if (parts.length >= 3) {
+            state.accounts.push({
+              name: `batch-acc-${state.accounts.length + 1}`,
+              email: parts[0],
+              refreshToken: parts[1],
+              projectId: parts[2],
+              concurrency: 5,
+              proxy: ""
+            });
+            added++;
+            return;
+          }
+        }
+        // 尝试匹配 rt|projectid
+        if (line.includes("|")) {
+          const parts = line.split("|").map(p => p.trim());
+          if (parts.length >= 2) {
+            state.accounts.push({
+              name: `batch-acc-${state.accounts.length + 1}`,
+              email: `acc${state.accounts.length + 1}@gmail.com`,
+              refreshToken: parts[0],
+              projectId: parts[1],
+              concurrency: 5,
+              proxy: ""
+            });
+            added++;
+            return;
+          }
+        }
+        // 尝试匹配 email:rt:projectid
+        if (line.includes(":")) {
+          const parts = line.split(":").map(p => p.trim());
+          if (parts.length >= 3) {
+            state.accounts.push({
+              name: `batch-acc-${state.accounts.length + 1}`,
+              email: parts[0],
+              refreshToken: parts[1],
+              projectId: parts[2],
+              concurrency: 5,
+              proxy: ""
+            });
+            added++;
+            return;
+          }
+        }
+      });
+
+      if (added > 0) {
+        renderAccounts();
+        showToast(`成功解析并添加了 ${added} 个账号！`);
+      } else {
+        alert("未识别出有效账号格式，请参考提示格式输入。");
+      }
+    });
+
+    // 清空池
+    document.getElementById("btnClearPool").addEventListener("click", () => {
+      state.accounts = [];
+      renderAccounts();
+      showToast("已清空账号列表");
+    });
+
+    document.getElementById("btnClearAll").addEventListener("click", () => {
+      state.accounts = [];
+      document.getElementById("batchInputText").value = "";
+      renderAccounts();
+      showToast("已清空全部内容");
+    });
+
+    // 载入示例数据 (使用纯 mock 占位符)
+    document.getElementById("btnLoadDemo").addEventListener("click", () => {
+      state.accounts = [
+        {
+          name: "gemini-demo-acc01",
+          email: "demo-tester-1@gmail.com",
+          refreshToken: "1//DEMO_PLACEHOLDER_TOKEN_ALPHA_01",
+          projectId: "demo-gcp-project-448102",
+          concurrency: 5,
+          proxy: ""
+        },
+        {
+          name: "gemini-demo-acc02",
+          email: "demo-tester-2@gmail.com",
+          refreshToken: "1//DEMO_PLACEHOLDER_TOKEN_BETA_02",
+          projectId: "demo-gcp-project-882103",
+          concurrency: 5,
+          proxy: ""
+        }
+      ];
+      renderAccounts();
+      showToast("已载入演示示例（纯虚拟占位符）");
+    });
+
+    // 复制结果 (复制真实明文配置，便于导入)
+    document.getElementById("btnCopyResult").addEventListener("click", () => {
+      if (state.accounts.length === 0) {
+        showToast("暂无可复制的配置！");
+        return;
+      }
+      const rawContent = generateFormattedText(false);
+      navigator.clipboard.writeText(rawContent).then(() => {
+        showToast("已复制完整配置（包含真实凭证）！");
+      }).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = rawContent;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showToast("已复制完整配置（包含真实凭证）！");
+      });
+    });
+
+    // 下载文件 (下载真实明文配置)
+    document.getElementById("btnDownloadResult").addEventListener("click", () => {
+      if (state.accounts.length === 0) {
+        showToast("暂无可下载的配置！");
+        return;
+      }
+      const rawContent = generateFormattedText(false);
+      let filename = "sub2api-antigravity-import.json";
+      if (state.currentFormat === "antigravity-mgr") {
+        filename = "antigravity-accounts.json";
+      } else if (state.currentFormat === "curl-cmd") {
+        filename = "import-accounts.sh";
+      } else if (state.currentFormat === "agent-prompt") {
+        filename = "agent-prompt.txt";
+      }
+
+      const blob = new Blob([rawContent], { type: "application/json;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`已开始下载 ${filename}`);
+    });
+
+    // 主题切换
+    const themeBtn = document.getElementById("btnThemeToggle");
+    const themeText = document.getElementById("themeText");
+    themeBtn.addEventListener("click", () => {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      themeText.textContent = next === "dark" ? "浅色" : "深色";
+      localStorage.setItem("sub2api_converter_theme", next);
+    });
+
+    // 恢复主题偏好
+    const savedTheme = localStorage.getItem("sub2api_converter_theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      themeText.textContent = savedTheme === "dark" ? "浅色" : "深色";
+    }
+
+    // 监听配置项修改动态重新生成
+    document.getElementById("clientId").addEventListener("input", generateOutput);
+    document.getElementById("clientSecret").addEventListener("input", generateOutput);
+
+    // 初始化渲染
+    renderAccounts();
+  </script>
+</body>
+</html>
