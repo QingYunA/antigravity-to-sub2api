@@ -524,7 +524,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label">并发调度上限 <small>(Concurrency)</small></label>
-                <input type="number" class="form-control" id="accConcurrency" value="5" min="1" max="50">
+                <input type="number" class="form-control" id="accConcurrency" value="4" min="1" max="50">
               </div>
             </div>
 
@@ -689,24 +689,79 @@
       };
 
       if (state.currentFormat === "sub2api-data") {
-        const payload = {
-          type: "sub2api-data",
-          version: 1,
-          accounts: accounts.map((acc, idx) => ({
-            name: acc.name || `antigravity-acc-${idx + 1}`,
-            platform: "antigravity",
-            type: "oauth",
-            status: "active",
-            concurrency_limit: Number(acc.concurrency) || 5,
-            proxy: acc.proxy || undefined,
-            credentials: {
-              client_id: clientId,
-              client_secret: clientSecret,
-              refresh_token: getSafeRt(acc.refreshToken),
-              project_id: acc.projectId,
-              email: acc.email
+        const proxyMap = new Map();
+        const proxies = [];
+
+        accounts.forEach(acc => {
+          if (acc.proxy && acc.proxy.trim()) {
+            const p = acc.proxy.trim();
+            if (!proxyMap.has(p)) {
+              let protocol = "socks5";
+              let host = p;
+              let port = 40000;
+              try {
+                if (p.includes("://")) {
+                  const u = new URL(p);
+                  protocol = u.protocol.replace(":", "");
+                  host = u.hostname;
+                  port = parseInt(u.port, 10) || 1080;
+                } else if (p.includes(":")) {
+                  const parts = p.split(":");
+                  host = parts[0];
+                  port = parseInt(parts[1], 10) || 1080;
+                }
+              } catch(e) {}
+              const proxyKey = `${protocol}|${host}|${port}||`;
+              proxyMap.set(p, proxyKey);
+              proxies.push({
+                proxy_key: proxyKey,
+                name: `proxy-${host}`,
+                protocol: protocol,
+                host: host,
+                port: port,
+                status: "active",
+                fallback_mode: "none",
+                expiry_warn_days: 7
+              });
             }
-          }))
+          }
+        });
+
+        // Sub2API 标准全量导包格式 (exported_at, proxies, accounts)
+        const payload = {
+          exported_at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+          proxies: proxies,
+          accounts: accounts.map((acc) => {
+            const proxyKey = (acc.proxy && proxyMap.get(acc.proxy.trim())) || "";
+            return {
+              name: acc.name || acc.email,
+              platform: "antigravity",
+              type: "oauth",
+              credentials: {
+                _token_version: Date.now(),
+                antigravity_project_id: acc.projectId,
+                email: acc.email,
+                model_mapping: {
+                  "gemini-3.8-flash-tiered": "gemini-3.8-flash-tiered"
+                },
+                oauth_type: "antigravity",
+                plan_type: "Pro",
+                project_id: "aicode-consumers",
+                refresh_token: getSafeRt(acc.refreshToken),
+                token_type: "Bearer"
+              },
+              extra: {
+                model_rate_limits: {},
+                oauth_type: "antigravity",
+                privacy_mode: "privacy_set"
+              },
+              proxy_key: proxyKey,
+              concurrency: Number(acc.concurrency) || 4,
+              priority: 1,
+              rate_multiplier: 1,
+              auto_pause_on_expired: true
+            };
+          })
         };
         return JSON.stringify(payload, null, 2);
       } 
@@ -940,19 +995,19 @@
     document.getElementById("btnLoadDemo").addEventListener("click", () => {
       state.accounts = [
         {
-          name: "gemini-demo-acc01",
+          name: "demo-tester-1@gmail.com",
           email: "demo-tester-1@gmail.com",
           refreshToken: "1//DEMO_PLACEHOLDER_TOKEN_ALPHA_01",
-          projectId: "demo-gcp-project-448102",
-          concurrency: 5,
-          proxy: ""
+          projectId: "pristine-disk-demo-448102",
+          concurrency: 4,
+          proxy: "172.18.0.1:40000"
         },
         {
-          name: "gemini-demo-acc02",
+          name: "demo-tester-2@gmail.com",
           email: "demo-tester-2@gmail.com",
           refreshToken: "1//DEMO_PLACEHOLDER_TOKEN_BETA_02",
-          projectId: "demo-gcp-project-882103",
-          concurrency: 5,
+          projectId: "gen-lang-client-demo-077362",
+          concurrency: 4,
           proxy: ""
         }
       ];

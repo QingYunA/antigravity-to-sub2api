@@ -42,22 +42,36 @@ Directly importable via Sub2API Web Dashboard (`Accounts -> Data Management -> I
 
 ```json
 {
-  "type": "sub2api-data",
-  "version": 1,
+  "exported_at": "2026-09-08T09:00:00Z",
+  "proxies": [],
   "accounts": [
     {
-      "name": "gemini-12m-acc01",
+      "name": "user@gmail.com",
       "platform": "antigravity",
       "type": "oauth",
-      "status": "active",
-      "concurrency_limit": 5,
       "credentials": {
-        "client_id": "1071006060591-...apps.googleusercontent.com",
-        "client_secret": "GOCSPX-...",
+        "_token_version": 1788856623206,
+        "antigravity_project_id": "gen-lang-client-your-gcp-id",
+        "email": "user@gmail.com",
+        "model_mapping": {
+          "gemini-3.8-flash-tiered": "gemini-3.8-flash-tiered"
+        },
+        "oauth_type": "antigravity",
+        "plan_type": "Pro",
+        "project_id": "aicode-consumers",
         "refresh_token": "<YOUR_REFRESH_TOKEN>",
-        "project_id": "antigravity-proj-448102",
-        "email": "user@gmail.com"
-      }
+        "token_type": "Bearer"
+      },
+      "extra": {
+        "model_rate_limits": {},
+        "oauth_type": "antigravity",
+        "privacy_mode": "privacy_set"
+      },
+      "proxy_key": "",
+      "concurrency": 4,
+      "priority": 1,
+      "rate_multiplier": 1,
+      "auto_pause_on_expired": true
     }
   ]
 }
