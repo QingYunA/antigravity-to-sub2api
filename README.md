@@ -51,8 +51,10 @@ Directly importable via Sub2API Web Dashboard (`Accounts -> Data Management -> I
       "type": "oauth",
       "credentials": {
         "_token_version": 1788856623206,
+        "access_token": "",
         "antigravity_project_id": "gen-lang-client-your-gcp-id",
         "email": "user@gmail.com",
+        "expires_at": "1788859919",
         "model_mapping": {
           "gemini-3.8-flash-tiered": "gemini-3.8-flash-tiered"
         },
